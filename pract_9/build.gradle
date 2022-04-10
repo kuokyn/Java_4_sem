@@ -1,0 +1,55 @@
+plugins {
+    // Apply the application plugin to add support for building a CLI application in Java.
+    id 'application'
+    id 'java'
+}
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    // Use JUnit test framework.
+    testImplementation 'junit:junit:4.13.1'
+
+    // This dependency is used by the application.
+    implementation 'com.google.guava:guava:30.0-jre'
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes('Main-Class': 'pract_9.App')
+    }
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+}
+
+task copyJar(type: Copy) {
+    dependsOn 'jar'
+    from file("$buildDir/libs/app.jar")
+    into file("$rootDir/app/src/main/resources/")
+}
+
+task removeJar(type: Delete) {
+    dependsOn 'copyJar'
+    delete file("$buildDir/libs/app.jar")
+}
+
+task buildImage(type: Exec) {
+    dependsOn 'removeJar'
+    commandLine 'docker', 'build', '-t', 'pract_9', './app/src/main/resources/'
+}
+
+task dockerRun(type: Exec) {
+    dependsOn 'buildImage'
+    commandLine 'docker', 'run', 'pract_9'
+}
